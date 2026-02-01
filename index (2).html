@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meeting Board - Schedule Your Appointment</title>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .page {
+            display: none;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .page.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: calc(100vh - 40px);
+        }
+
+        .admin-link {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            z-index: 1000;
+        }
+
+        .admin-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 900px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.95;
+        }
+
+        .content {
+            padding: 50px 40px;
+        }
+
+        .form-group {
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 0.95em;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .time-slots {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .date-slots {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .date-slot {
+            padding: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+            font-weight: 500;
+        }
+
+        .date-slot:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .date-slot.selected {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .date-slot .day-name {
+            font-size: 0.85em;
+            opacity: 0.8;
+            margin-bottom: 4px;
+        }
+
+        .date-slot.selected .day-name {
+            opacity: 1;
+        }
+
+        .time-slot {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+            font-weight: 500;
+        }
+
+        .time-slot:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .time-slot.selected {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px 40px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .success-message {
+            display: none;
+            background: #10b981;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 20px;
+            font-weight: 500;
+        }
+
+        .success-message.show {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .content {
+                padding: 30px 25px;
+            }
+            
+            .time-slots {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            }
+
+            .admin-link {
+                top: 10px;
+                right: 10px;
+                padding: 8px 16px;
+                font-size: 0.9em;
+            }
+        }
+
+        /* Admin Styles */
+        .admin-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .admin-panel {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1000px;
+            width: 100%;
+            overflow: hidden;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .logout-btn {
+            background: #ef4444;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-left: 20px;
+        }
+
+        .logout-btn:hover {
+            background: #dc2626;
+        }
+
+        .admin-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            padding: 40px;
+        }
+
+        .settings-section {
+            background: #f9fafb;
+            padding: 30px;
+            border-radius: 15px;
+        }
+
+        .settings-section h3 {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 1.3em;
+        }
+
+        .time-manager {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .time-manager input {
+            flex: 1;
+        }
+
+        .add-btn, .remove-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .add-btn {
+            background: #10b981;
+            color: white;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .add-btn:hover {
+            background: #059669;
+        }
+
+        .remove-btn {
+            background: #ef4444;
+            color: white;
+            padding: 8px 12px;
+        }
+
+        .remove-btn:hover {
+            background: #dc2626;
+        }
+
+        .time-list, .type-list {
+            margin-top: 15px;
+        }
+
+        .time-item, .type-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .save-settings {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px 40px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .save-settings:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .days-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .day-checkbox {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .day-checkbox:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .day-checkbox input[type="checkbox"] {
+            width: auto;
+            margin-right: 8px;
+            cursor: pointer;
+        }
+
+        .day-checkbox input[type="checkbox"]:checked + label {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .day-checkbox label {
+            cursor: pointer;
+            margin: 0;
+            font-size: 0.95em;
+        }
+
+        @media (max-width: 768px) {
+            .settings-grid {
+                grid-template-columns: 1fr;
+                padding: 25px;
+            }
+
+            .admin-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="#" class="admin-link" id="adminLinkBtn">Admin</a>
+
+    <!-- Booking Page -->
+    <div class="page active" id="bookingPage">
+        <div class="container">
+            <div class="header">
+                <h1>Meeting Board</h1>
+                <p>Schedule your appointment in just a few clicks</p>
+            </div>
+
+            <div class="content">
+                <form id="appointmentForm">
+                    <div class="form-group">
+                        <label for="name">Full Name</label>
+                        <input type="text" id="name" name="name" required placeholder="John Doe">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email" required placeholder="john@example.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" name="phone" placeholder="+1 (555) 123-4567">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Preferred Date</label>
+                        <div class="date-slots" id="dateSlots"></div>
+                        <input type="hidden" id="selectedDate" name="date" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Preferred Time</label>
+                        <div class="time-slots" id="timeSlots"></div>
+                        <input type="hidden" id="selectedTime" name="time" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="meetingType">Meeting Type</label>
+                        <select id="meetingType" name="meetingType" required>
+                            <option value="">Select meeting type</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="notes">Additional Notes (Optional)</label>
+                        <textarea id="notes" name="notes" placeholder="Tell me a bit about what you'd like to discuss..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn">Book Appointment</button>
+                </form>
+
+                <div class="success-message" id="successMessage">
+                    ✓ Appointment request received! I'll be in touch shortly to confirm.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sign In Page -->
+    <div class="page" id="signInPage">
+        <div class="admin-container">
+            <div class="header">
+                <h1>Admin Sign In</h1>
+                <p>Access your dashboard</p>
+            </div>
+
+            <div class="content">
+                <form id="signInForm">
+                    <div class="form-group">
+                        <label for="adminEmail">Email</label>
+                        <input type="email" id="adminEmail" required placeholder="admin@example.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="adminPassword">Password</label>
+                        <input type="password" id="adminPassword" required placeholder="Enter password">
+                    </div>
+
+                    <button type="submit" class="btn">Sign In</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div class="page" id="adminPage">
+        <div class="admin-panel">
+            <div class="admin-header">
+                <div>
+                    <h1>Admin Dashboard</h1>
+                    <p>Manage your availability and settings</p>
+                </div>
+                <button class="logout-btn" id="logoutBtn">Logout</button>
+            </div>
+
+            <div class="settings-grid">
+                <!-- Time Slots Management -->
+                <div class="settings-section">
+                    <h3>⏰ Available Time Slots</h3>
+                    <div class="time-manager">
+                        <input type="time" id="newTimeSlot" placeholder="Add time slot">
+                        <button class="add-btn" id="addTimeBtn">Add Time</button>
+                    </div>
+                    <div class="time-list" id="timeList"></div>
+                </div>
+
+                <!-- Meeting Types Management -->
+                <div class="settings-section">
+                    <h3>📋 Meeting Types</h3>
+                    <div class="time-manager">
+                        <input type="text" id="newMeetingType" placeholder="Add meeting type">
+                        <button class="add-btn" id="addTypeBtn">Add Type</button>
+                    </div>
+                    <div class="type-list" id="typeList"></div>
+                </div>
+
+                <!-- Date Settings -->
+                <div class="settings-section" style="grid-column: 1 / -1;">
+                    <h3>📅 Booking Settings</h3>
+                    <div class="form-group">
+                        <label>Available Days of the Week</label>
+                        <div class="days-selector">
+                            <div class="day-checkbox">
+                                <input type="checkbox" id="day-1" value="1">
+                                <label for="day-1">Monday</label>
+                            </div>
+                            <div class="day-checkbox">
+                                <input type="checkbox" id="day-2" value="2">
+                                <label for="day-2">Tuesday</label>
+                            </div>
+                            <div class="day-checkbox">
+                                <input type="checkbox" id="day-3" value="3">
+                                <label for="day-3">Wednesday</label>
+                            </div>
+                            <div class="day-checkbox">
+                                <input type="checkbox" id="day-4" value="4">
+                                <label for="day-4">Thursday</label>
+                            </div>
+                            <div class="day-checkbox">
+                                <input type="checkbox" id="day-5" value="5">
+                                <label for="day-5">Friday</label>
+                            </div>
+                            <div class="day-checkbox">
+                                <input type="checkbox" id="day-6" value="6">
+                                <label for="day-6">Saturday</label>
+                            </div>
+                            <div class="day-checkbox">
+                                <input type="checkbox" id="day-0" value="0">
+                                <label for="day-0">Sunday</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="maxDaysAhead">Maximum days ahead for booking</label>
+                        <input type="number" id="maxDaysAhead" min="1" max="365" value="30">
+                    </div>
+                    <div class="form-group">
+                        <label for="minDaysAhead">Minimum days ahead for booking</label>
+                        <input type="number" id="minDaysAhead" min="0" max="30" value="0">
+                    </div>
+                </div>
+
+                <!-- Email Settings -->
+                <div class="settings-section" style="grid-column: 1 / -1;">
+                    <h3>📧 Email Notifications</h3>
+                    <p style="color: #666; margin-bottom: 15px; font-size: 0.9em;">Get notified via email when someone books an appointment. <a href="https://www.emailjs.com/" target="_blank" style="color: #667eea;">Sign up for free at EmailJS</a></p>
+                    <div class="form-group">
+                        <label for="emailServiceId">EmailJS Service ID</label>
+                        <input type="text" id="emailServiceId" placeholder="service_xxxxxxx">
+                    </div>
+                    <div class="form-group">
+                        <label for="emailTemplateId">EmailJS Template ID</label>
+                        <input type="text" id="emailTemplateId" placeholder="template_xxxxxxx">
+                    </div>
+                    <div class="form-group">
+                        <label for="emailPublicKey">EmailJS Public Key</label>
+                        <input type="text" id="emailPublicKey" placeholder="Your public key">
+                    </div>
+                    <div class="form-group">
+                        <label for="notificationEmail">Your Email Address</label>
+                        <input type="email" id="notificationEmail" placeholder="your@email.com">
+                    </div>
+                </div>
+            </div>
+
+            <div style="padding: 0 40px 40px;">
+                <button class="save-settings" id="saveSettingsBtn">Save All Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Default settings
+        let settings = {
+            timeSlots: ['09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00'],
+            meetingTypes: ['Consultation', 'Follow-up', 'Introduction Call', 'Project Discussion', 'Other'],
+            maxDaysAhead: 30,
+            minDaysAhead: 0,
+            emailServiceId: '',
+            emailTemplateId: '',
+            emailPublicKey: '',
+            notificationEmail: '',
+            availableDays: [1, 2, 3, 4, 5] // Monday(1) to Friday(5), Sunday is 0, Saturday is 6
+        };
+
+        // Load settings from localStorage
+        function loadSettings() {
+            const saved = localStorage.getItem('meetingBoardSettings');
+            if (saved) {
+                settings = JSON.parse(saved);
+            }
+        }
+
+        // Save settings to localStorage
+        function saveSettings() {
+            localStorage.setItem('meetingBoardSettings', JSON.stringify(settings));
+        }
+
+        // Initialize on load
+        loadSettings();
+
+        // Page navigation
+        const pages = {
+            booking: document.getElementById('bookingPage'),
+            signIn: document.getElementById('signInPage'),
+            admin: document.getElementById('adminPage')
+        };
+
+        function showPage(pageName) {
+            Object.values(pages).forEach(page => page.classList.remove('active'));
+            pages[pageName].classList.add('active');
+        }
+
+        // Admin link click
+        document.getElementById('adminLinkBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
+            if (isLoggedIn) {
+                showPage('admin');
+                renderAdminSettings();
+            } else {
+                showPage('signIn');
+            }
+        });
+
+            // Sign in form
+            document.getElementById('signInForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const email = document.getElementById('adminEmail').value;
+                const password = document.getElementById('adminPassword').value;
+
+                // Simple authentication (in production, use proper backend auth)
+                if (email === 'admin@meetingboard.com' && password === 'admin123') {
+                    sessionStorage.setItem('adminLoggedIn', 'true');
+                    showPage('admin');
+                    renderAdminSettings();
+                } else {
+                    alert('Invalid credentials. Please try again.');
+                }
+            });
+
+            // Logout
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                sessionStorage.removeItem('adminLoggedIn');
+                showPage('booking');
+            });
+
+            // Render time slots in admin
+            function renderTimeSlots() {
+                const timeList = document.getElementById('timeList');
+                timeList.innerHTML = '';
+                
+                settings.timeSlots.forEach((time, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'time-item';
+                    div.innerHTML = `
+                        <span>${formatTime(time)}</span>
+                        <button class="remove-btn" data-index="${index}" data-type="time">Remove</button>
+                    `;
+                    timeList.appendChild(div);
+                });
+            }
+
+            // Render meeting types in admin
+            function renderMeetingTypes() {
+                const typeList = document.getElementById('typeList');
+                typeList.innerHTML = '';
+                
+                settings.meetingTypes.forEach((type, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'type-item';
+                    div.innerHTML = `
+                        <span>${type}</span>
+                        <button class="remove-btn" data-index="${index}" data-type="type">Remove</button>
+                    `;
+                    typeList.appendChild(div);
+                });
+            }
+
+            // Event delegation for remove buttons
+            document.addEventListener('click', (e) => {
+                if (e.target.classList.contains('remove-btn')) {
+                    const index = parseInt(e.target.dataset.index);
+                    const type = e.target.dataset.type;
+                    
+                    if (type === 'time') {
+                        settings.timeSlots.splice(index, 1);
+                        renderTimeSlots();
+                    } else if (type === 'type') {
+                        settings.meetingTypes.splice(index, 1);
+                        renderMeetingTypes();
+                    }
+                }
+            });
+
+            // Render admin settings
+            function renderAdminSettings() {
+                renderTimeSlots();
+                renderMeetingTypes();
+                document.getElementById('maxDaysAhead').value = settings.maxDaysAhead;
+                document.getElementById('minDaysAhead').value = settings.minDaysAhead;
+                document.getElementById('emailServiceId').value = settings.emailServiceId || '';
+                document.getElementById('emailTemplateId').value = settings.emailTemplateId || '';
+                document.getElementById('emailPublicKey').value = settings.emailPublicKey || '';
+                document.getElementById('notificationEmail').value = settings.notificationEmail || '';
+                
+                // Set available days checkboxes
+                for (let i = 0; i <= 6; i++) {
+                    const checkbox = document.getElementById(`day-${i}`);
+                    if (checkbox) {
+                        checkbox.checked = settings.availableDays.includes(i);
+                    }
+                }
+            }
+
+            // Add time slot
+            const timeInput = document.getElementById('newTimeSlot');
+            document.getElementById('addTimeBtn').addEventListener('click', addTimeSlot);
+            timeInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addTimeSlot();
+                }
+            });
+
+            function addTimeSlot() {
+                if (timeInput.value && !settings.timeSlots.includes(timeInput.value)) {
+                    settings.timeSlots.push(timeInput.value);
+                    settings.timeSlots.sort();
+                    renderTimeSlots();
+                    timeInput.value = '';
+                }
+            }
+
+            // Add meeting type
+            const typeInput = document.getElementById('newMeetingType');
+            document.getElementById('addTypeBtn').addEventListener('click', addMeetingType);
+            typeInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addMeetingType();
+                }
+            });
+
+            function addMeetingType() {
+                if (typeInput.value && !settings.meetingTypes.includes(typeInput.value)) {
+                    settings.meetingTypes.push(typeInput.value);
+                    renderMeetingTypes();
+                    typeInput.value = '';
+                }
+            }
+
+            // Save all settings
+            document.getElementById('saveSettingsBtn').addEventListener('click', () => {
+                settings.maxDaysAhead = parseInt(document.getElementById('maxDaysAhead').value);
+                settings.minDaysAhead = parseInt(document.getElementById('minDaysAhead').value);
+                settings.emailServiceId = document.getElementById('emailServiceId').value;
+                settings.emailTemplateId = document.getElementById('emailTemplateId').value;
+                settings.emailPublicKey = document.getElementById('emailPublicKey').value;
+                settings.notificationEmail = document.getElementById('notificationEmail').value;
+                
+                // Save available days
+                settings.availableDays = [];
+                for (let i = 0; i <= 6; i++) {
+                    const checkbox = document.getElementById(`day-${i}`);
+                    if (checkbox && checkbox.checked) {
+                        settings.availableDays.push(i);
+                    }
+                }
+                
+                saveSettings();
+                updateBookingPage();
+                alert('Settings saved successfully!');
+            });
+
+            // Format time for display
+            function formatTime(time) {
+                const [hours, minutes] = time.split(':');
+                const hour = parseInt(hours);
+                const ampm = hour >= 12 ? 'PM' : 'AM';
+                const displayHour = hour % 12 || 12;
+                return `${displayHour}:${minutes} ${ampm}`;
+            }
+
+            // Update booking page with current settings
+            function updateBookingPage() {
+                // Update time slots
+                const timeSlotsContainer = document.getElementById('timeSlots');
+                timeSlotsContainer.innerHTML = '';
+                
+                settings.timeSlots.forEach(time => {
+                    const div = document.createElement('div');
+                    div.className = 'time-slot';
+                    div.dataset.time = time;
+                    div.textContent = formatTime(time);
+                    timeSlotsContainer.appendChild(div);
+                });
+
+                // Re-attach time slot click handlers
+                attachTimeSlotHandlers();
+
+                // Update date slots - generate available dates based on admin settings
+                const dateSlotsContainer = document.getElementById('dateSlots');
+                dateSlotsContainer.innerHTML = '';
+                
+                const availableDates = getAvailableDates();
+                availableDates.forEach(dateObj => {
+                    const div = document.createElement('div');
+                    div.className = 'date-slot';
+                    div.dataset.date = dateObj.isoDate;
+                    div.innerHTML = `
+                        <div class="day-name">${dateObj.dayName}</div>
+                        <div>${dateObj.displayDate}</div>
+                    `;
+                    dateSlotsContainer.appendChild(div);
+                });
+
+                // Attach date slot click handlers
+                attachDateSlotHandlers();
+
+                // Update meeting types
+                const meetingTypeSelect = document.getElementById('meetingType');
+                meetingTypeSelect.innerHTML = '<option value="">Select meeting type</option>';
+                
+                settings.meetingTypes.forEach(type => {
+                    const option = document.createElement('option');
+                    option.value = type.toLowerCase().replace(/\s+/g, '-');
+                    option.textContent = type;
+                    meetingTypeSelect.appendChild(option);
+                });
+            }
+            
+            // Get available dates based on admin settings
+            function getAvailableDates() {
+                const dates = [];
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                // Get Monday of current week
+                const currentDay = today.getDay();
+                const diff = currentDay === 0 ? -6 : 1 - currentDay;
+                const startDate = new Date(today);
+                startDate.setDate(today.getDate() + diff + settings.minDaysAhead);
+                
+                // Generate dates for next 14 days, filtering by available days
+                for (let i = 0; i < 14; i++) {
+                    const date = new Date(startDate);
+                    date.setDate(startDate.getDate() + i);
+                    
+                    // Check if this day of week is available
+                    if (settings.availableDays.includes(date.getDay())) {
+                        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                        
+                        dates.push({
+                            isoDate: date.toISOString().split('T')[0],
+                            dayName: dayNames[date.getDay()],
+                            displayDate: `${monthNames[date.getMonth()]} ${date.getDate()}`,
+                            fullDate: date
+                        });
+                    }
+                }
+                
+                return dates;
+            }
+            
+            // Attach date slot click handlers
+            function attachDateSlotHandlers() {
+                const dateSlots = document.querySelectorAll('.date-slot');
+                const selectedDateInput = document.getElementById('selectedDate');
+
+                dateSlots.forEach(slot => {
+                    slot.addEventListener('click', function() {
+                        dateSlots.forEach(s => s.classList.remove('selected'));
+                        this.classList.add('selected');
+                        selectedDateInput.value = this.dataset.date;
+                    });
+                });
+            }
+
+            // Attach time slot click handlers
+            function attachTimeSlotHandlers() {
+                const timeSlots = document.querySelectorAll('.time-slot');
+                const selectedTimeInput = document.getElementById('selectedTime');
+
+                timeSlots.forEach(slot => {
+                    slot.addEventListener('click', function() {
+                        timeSlots.forEach(s => s.classList.remove('selected'));
+                        this.classList.add('selected');
+                        selectedTimeInput.value = this.dataset.time;
+                    });
+                });
+            }
+
+            // Initialize booking page
+            updateBookingPage();
+
+            // Form submission
+            document.getElementById('appointmentForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const selectedTimeInput = document.getElementById('selectedTime');
+                const selectedDateInput = document.getElementById('selectedDate');
+                
+                if (!selectedDateInput.value) {
+                    alert('Please select a preferred date');
+                    return;
+                }
+                
+                if (!selectedTimeInput.value) {
+                    alert('Please select a preferred time');
+                    return;
+                }
+
+                const formData = new FormData(this);
+                const data = Object.fromEntries(formData);
+                
+                console.log('Appointment Data:', data);
+                
+                // Send email notification if configured
+                if (settings.emailServiceId && settings.emailTemplateId && settings.emailPublicKey) {
+                    sendEmailNotification(data);
+                }
+                
+                // Show success message
+                document.getElementById('successMessage').classList.add('show');
+                
+                // Reset form
+                this.reset();
+                document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+                document.querySelectorAll('.date-slot').forEach(s => s.classList.remove('selected'));
+                selectedTimeInput.value = '';
+                selectedDateInput.value = '';
+                
+                // Hide success message after 5 seconds
+                setTimeout(() => {
+                    document.getElementById('successMessage').classList.remove('show');
+                }, 5000);
+            });
+
+            // Send email notification
+            function sendEmailNotification(appointmentData) {
+                // Initialize EmailJS
+                emailjs.init(settings.emailPublicKey);
+                
+                // Prepare template parameters
+                const templateParams = {
+                    to_email: settings.notificationEmail,
+                    from_name: appointmentData.name,
+                    from_email: appointmentData.email,
+                    phone: appointmentData.phone || 'Not provided',
+                    date: appointmentData.date,
+                    time: formatTime(appointmentData.time),
+                    meeting_type: appointmentData.meetingType,
+                    notes: appointmentData.notes || 'No additional notes',
+                    reply_to: appointmentData.email
+                };
+                
+                // Send email
+                emailjs.send(settings.emailServiceId, settings.emailTemplateId, templateParams)
+                    .then(function(response) {
+                        console.log('Email sent successfully!', response.status, response.text);
+                    }, function(error) {
+                        console.error('Failed to send email:', error);
+                        alert('Appointment booked, but email notification failed. Please check your email settings.');
+                    });
+            }
+    </script>
+</body>
+</html>
