@@ -16,11 +16,13 @@ local BuildingInteriors = require(ReplicatedStorage.Modules.BuildingInteriors)
 local NPCSystem = require(ReplicatedStorage.Modules.NPCSystem)
 local PlayerDataManager = require(ServerScriptService.Services.PlayerDataManager)
 local InteractionHandler = require(ServerScriptService.Services.InteractionHandler)
+local LightingManager = require(ServerScriptService.Systems.LightingManager)
 
 print("=== Game Development Simulator Server Starting ===")
 
 -- Initialize systems
 ResearchSystem.Initialize()
+LightingManager.Initialize()
 
 -- Generate the city
 print("Generating city...")
@@ -41,6 +43,13 @@ print("NPCs spawned successfully!")
 print("Setting up interactions...")
 InteractionHandler.SetupInteractions(city)
 print("Interactions ready!")
+
+-- Add lighting enhancements
+print("Setting up lighting...")
+LightingManager.AddStreetLights(city)
+LightingManager.AddBuildingLights(city)
+LightingManager.SetWeather("Clear")
+print("Lighting setup complete!")
 
 -- Player connection handlers
 Players.PlayerAdded:Connect(function(player)
