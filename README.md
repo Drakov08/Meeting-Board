@@ -2,6 +2,13 @@
 
 A deep, systemic, interactive Roblox simulator game where players build a game development studio from the ground up, within a dense, explorable, low-poly city.
 
+## 🚀 Quick Start
+
+**New to Rojo?** See our setup guides:
+- 📘 **[Quick Start Guide](QUICKSTART_ROJO.md)** - Fast instructions to connect to localhost:34872
+- 📗 **[Detailed Rojo Setup](ROJO_SETUP.md)** - Step-by-step with troubleshooting
+- 📕 **[Full Installation Guide](INSTALLATION.md)** - Complete setup instructions
+
 ## 🎮 Game Overview
 
 Build and manage your own game development studio in an immersive 3D city environment. Hire employees, develop games, research new technologies, and grow your reputation in the gaming industry.

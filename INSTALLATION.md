@@ -1,5 +1,12 @@
 # Installation & Setup Guide
 
+## 🔗 Quick Links
+
+- **Having trouble connecting to Rojo?** → See **[ROJO_SETUP.md](ROJO_SETUP.md)** for detailed connection instructions
+- **Want a quick start?** → See **[QUICKSTART_ROJO.md](QUICKSTART_ROJO.md)** for TL;DR version
+
+---
+
 ## Prerequisites
 
 Before you begin, ensure you have the following installed:
