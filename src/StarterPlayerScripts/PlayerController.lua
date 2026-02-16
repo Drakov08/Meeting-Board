@@ -10,6 +10,7 @@ local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
 
 local GameConfig = require(ReplicatedStorage.Config.GameConfig)
+local OwnerComputerUI = require(script.Parent.OwnerComputerUI)
 
 print("Player controller initialized for: " .. player.Name)
 
@@ -31,34 +32,54 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
 	if input.KeyCode == Enum.KeyCode.E then
 		isMenuOpen = not isMenuOpen
 		print("Menu toggled: " .. tostring(isMenuOpen))
-		-- TODO: Show/hide UI menu
+		-- TODO: Show/hide general game menu
 	end
 	
 	-- Open computer with C key
 	if input.KeyCode == Enum.KeyCode.C then
-		print("Computer interface opened")
-		-- TODO: Show computer UI
+		print("Computer interface toggled")
+		OwnerComputerUI.Toggle()
 	end
 	
 	-- Quick stats with Tab key
-	if input.KeyCode == Enum.KeyCode.Tab then
+	if input.KeyCode == Enum.KeyCode.Tab and not gameProcessed then
 		print("Quick stats displayed")
 		-- TODO: Show quick stats overlay
 	end
 end)
 
+-- Show tutorial message on spawn
+local tutorialShown = false
+
+spawn(function()
+	wait(2)
+	if not tutorialShown then
+		tutorialShown = true
+		print("=== WELCOME TO GAME DEV SIMULATOR ===")
+		print("Press C to open your Owner Computer")
+		print("Walk to buildings and press the prompts to interact")
+		print("Claim a plot in the Studio Zone to start your studio!")
+		print("Visit shops to hire employees and buy equipment")
+	end
+end)
+
 -- Proximity detection for interactive objects
+local currentProximityPart = nil
+
 local function checkProximity()
 	local rootPart = character:FindFirstChild("HumanoidRootPart")
 	if not rootPart then return end
 	
 	-- Check for nearby buildings and interactive objects
-	local nearbyParts = workspace:GetPartBoundsInRadius(rootPart.Position, 10)
+	local nearbyParts = workspace:GetPartBoundsInRadius(rootPart.Position, 15)
 	
 	for _, part in ipairs(nearbyParts) do
 		if part.Name == "Door" then
-			-- Show "Press E to enter" prompt
-			-- TODO: Create interaction UI
+			-- Show hint (in real implementation, this would be UI)
+			if part ~= currentProximityPart then
+				currentProximityPart = part
+				-- Display interaction hint
+			end
 		end
 	end
 end

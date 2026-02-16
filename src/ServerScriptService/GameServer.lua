@@ -12,7 +12,10 @@ local CityGenerator = require(ReplicatedStorage.Modules.CityGenerator)
 local EmployeeSystem = require(ReplicatedStorage.Modules.EmployeeSystem)
 local GameDevPipeline = require(ReplicatedStorage.Modules.GameDevPipeline)
 local ResearchSystem = require(ReplicatedStorage.Modules.ResearchSystem)
+local BuildingInteriors = require(ReplicatedStorage.Modules.BuildingInteriors)
+local NPCSystem = require(ReplicatedStorage.Modules.NPCSystem)
 local PlayerDataManager = require(ServerScriptService.Services.PlayerDataManager)
+local InteractionHandler = require(ServerScriptService.Services.InteractionHandler)
 
 print("=== Game Development Simulator Server Starting ===")
 
@@ -23,6 +26,21 @@ ResearchSystem.Initialize()
 print("Generating city...")
 local city = CityGenerator.GenerateCity(Workspace)
 print("City generated successfully!")
+
+-- Add building interiors
+print("Creating building interiors...")
+BuildingInteriors.InitializeAllInteriors(city)
+print("Building interiors created!")
+
+-- Spawn NPCs
+print("Spawning NPCs...")
+NPCSystem.SpawnNPCs(city)
+print("NPCs spawned successfully!")
+
+-- Setup interaction handlers
+print("Setting up interactions...")
+InteractionHandler.SetupInteractions(city)
+print("Interactions ready!")
 
 -- Player connection handlers
 Players.PlayerAdded:Connect(function(player)
