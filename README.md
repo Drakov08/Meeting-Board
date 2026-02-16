@@ -4,6 +4,16 @@ A deep, systemic, interactive Roblox simulator game where players build a game d
 
 ## 🚀 Quick Start
 
+### ☁️ Develop in the Cloud (Recommended!)
+
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/Drakov08/Meeting-Board)
+
+**No setup required!** Click the badge above to start developing in your browser with all dependencies pre-installed.
+
+→ **[Codespaces Setup Guide](.devcontainer/README.md)** - How to use Codespaces
+
+### 💻 Local Development
+
 **New to Rojo?** See our setup guides:
 - 📘 **[Quick Start Guide](QUICKSTART_ROJO.md)** - Fast instructions to connect to localhost:34872
 - 📗 **[Detailed Rojo Setup](ROJO_SETUP.md)** - Step-by-step with troubleshooting

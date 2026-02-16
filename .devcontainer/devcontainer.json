@@ -1,0 +1,61 @@
+{
+  "name": "Roblox Game Dev Simulator",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "configureZshAsDefaultShell": true,
+      "username": "vscode",
+      "userUid": "1000",
+      "userGid": "1000"
+    },
+    "ghcr.io/devcontainers/features/git:1": {
+      "version": "latest"
+    }
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "sumneko.lua",
+        "johnnymorganz.stylua",
+        "evaera.vscode-rojo",
+        "nightrains.robloxlsp",
+        "trixnz.vscode-lua"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "files.associations": {
+          "*.lua": "lua"
+        },
+        "Lua.diagnostics.globals": [
+          "game",
+          "workspace",
+          "script",
+          "Instance",
+          "Vector3",
+          "Color3",
+          "CFrame",
+          "Enum"
+        ],
+        "Lua.runtime.version": "Luau",
+        "Lua.workspace.library": [
+          "${workspaceFolder}/src"
+        ]
+      }
+    }
+  },
+
+  "postCreateCommand": "bash .devcontainer/setup.sh",
+  
+  "forwardPorts": [34872],
+  "portsAttributes": {
+    "34872": {
+      "label": "Rojo Server",
+      "onAutoForward": "notify"
+    }
+  },
+
+  "remoteUser": "vscode"
+}
